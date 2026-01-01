@@ -4,12 +4,15 @@ import TotalCost from "./TotalCost";
 import { useSelector, useDispatch } from "react-redux"; 
 import { incrementQuantity, decrementQuantity } from "./venueSlice";
 import { decrementAvQuantity, incrementAvQuantity } from "./avSlice";
+import { toggleMealSelection } from "./mealsSlice";
 
 const ConferenceEvent = () => {
+  // --- Retrieve ---
   const [showItems, setShowItems] = useState(false);
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const venueItems = useSelector((state) => state.venue); // useSelector - retrieves venue items from the Redux store state
   const avItems = useSelector((state) => state.av); // retrives add-ons items
+  const mealsItems = useSelector((state) => state.meals);
   const dispatch = useDispatch();
   const remainingAuditoriumQuantity = 3 - venueItems.find(item => item.name === "Auditorium Hall (Capacity:200)").quantity;
 
@@ -42,6 +45,15 @@ const ConferenceEvent = () => {
   };
 
   const handleMealSelection = (index) => {
+    const item = mealsItems[index];
+
+    if (item.selected && item.type === 'mealForPeople') {
+      // Ensure numberOfPeople is set before toggling selection
+      const newNumberOfPeople = item.selected ? numberOfPeople : 0;
+      dispatch(toggleMealSelection(index, newNumberOfPeople));
+    } else {
+      dispatch(toggleMealSelection(index));
+    }
   };
 
   const getItemsFromTotalCost = () => {
@@ -71,6 +83,12 @@ const ConferenceEvent = () => {
         avItems.forEach((item) => {
           totalCost += item.cost * item.quantity;
         });
+      } else if (section === 'meals') {
+        mealsItems.forEach((item) => {
+          if (item.selected) {
+            totalCost += item.cost * numberOfPeople;
+          }
+        });
       }
       return totalCost;
   };
@@ -79,6 +97,7 @@ const ConferenceEvent = () => {
   const items = getItemsFromTotalCost();
   const venueTotalCost = calculateTotalCost("venue");
   const avTotalCost = calculateTotalCost('av');
+  const mealsTotalCost = calculateTotalCost('meals');
 
   return (
     <>
@@ -183,9 +202,7 @@ const ConferenceEvent = () => {
                   ))}
                 </div>
 
-                <div className="total_cost">
-                  Total Cost: {avTotalCost}
-                </div>
+                <div className="total_cost">Total Cost: ${avTotalCost}</div>
               </div>
 
               {/* ----- Meal Section ----- */}
@@ -195,17 +212,36 @@ const ConferenceEvent = () => {
                     <h1>Meals Selection</h1>
                   </div>
 
+                  {/* Input field */}
                   <div className="input-container venue_selection">
+                    <label htmlFor="numberOfPeople"><h3>Number of People:</h3></label>
 
+                    <input type="number" className="input_box5" id="numberOfPoeple" value={numberOfPeople}
+                      onChange={(e) => setNumberOfPeople(parseInt(e.target.value))}
+                      min='1'
+                    />
                   </div>
 
+                  {/* Display meals */}
                   <div className="meal_selection">
+                    {mealsItems.map((item, index) => {
+                      {/* 'key' prop is necessary for React to keep track of each item in the list */}
+                      <div className="meal_item" key={index} style={{padding: 15}}> 
 
+                        <div className="inner">
+                          <input id={`meal_${index}`} type="checkbox" checked={item.seleted} 
+                            onChange={() => handleMealSelection(index)}
+                          />
+
+                          <label htmlFor={`meal_${index}`}>{item.name}</label> {/* 'htmlFor' is the = for standard HTML 'for' property (like an id) */}
+                        </div>
+
+                        <div className="meal_cost">${item.cost}</div>
+                      </div>
+                    })}
                   </div>
 
-                  <div className="total_cost">
-                    Total Cost: 
-                  </div>
+                  <div className="total_cost">Total Cost: ${mealsTotalCost}</div>
               </div>
 
             </div>
