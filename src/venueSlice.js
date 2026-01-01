@@ -28,8 +28,8 @@ export const venueSlice = createSlice({
       cost: 900,
       quantity: 0,
     },
-    {
-      img: "https://pixabay.com/images/download/laptops-593296_640.jpg",
+    { // https://images.pexels.com/photos/2566581/pexels-photo-2566581.jpeg --- https://pixabay.com/images/download/laptops-593296_640.jpg
+      img: "https://images.pexels.com/photos/2566581/pexels-photo-2566581.jpeg", 
       name: "Small Meeting Room (Capacity:5)",
       cost: 1100,
       quantity: 0,
@@ -42,7 +42,9 @@ export const venueSlice = createSlice({
       const { payload: index } = action;
       if (state[index]) {
         if (state[index].name === " Auditorium Hall (Capacity:200)" && state[index].quantity >= 3) {
-          return;        }
+          return;        
+        }
+
         state[index].quantity++;
       }
     },
