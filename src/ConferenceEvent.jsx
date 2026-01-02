@@ -19,7 +19,6 @@ const ConferenceEvent = () => {
   
   // --- Functions ---
   const handleToggleItems = () => {
-    console.log("handleToggleItems called");
     setShowItems(!showItems);
   };
 
@@ -28,6 +27,7 @@ const ConferenceEvent = () => {
       return; // prevent further additions
     }
     dispatch(incrementQuantity(index));
+    console.log(`This is index: ${index}`);
   };
   
   const handleRemoveFromCart = (index) => {
@@ -58,6 +58,7 @@ const ConferenceEvent = () => {
 
   // will store all items the user selected in an array by creating an empty array named 'items'
   const getItemsFromTotalCost = () => { 
+    console.log('Inside getItemsFromTotalCost...')
     const items = [];
 
     venueItems.forEach((item) => {
@@ -86,6 +87,10 @@ const ConferenceEvent = () => {
         items.push(itemForDisplay);
       }
     });
+
+    console.log(`This is the items array: ${items.length}`)
+
+    return items;
   };
 
   const navigateToProducts = (idType) => {
@@ -130,44 +135,44 @@ const ConferenceEvent = () => {
 
   // ----- ItemDisplay Component -----
   const ItemsDisplay = ({ items }) => {
-    console.log(items);
-
-    return (
-      <>
-        <div className="display_box1">
-          {items.length === 0 && <p>No items selected</p>}
-
-          <table className="table_item_data">
-            {/* Table head */}
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Unit Cost</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-              </tr>
-            </thead>
-
-            {/* Table body */}
-            <tbody>
-              {items.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.name}</td>
-                  <td>${item.cost}</td>
-                  <td>
-                    {item.type === 'meals' || item.numberOfPeople ? ` For ${numberOfPeople} people` : item.quantity}
-                  </td>
-                  <td>
-                    {item.type === 'meals' || item.numberOfPeople ? `${item.cost * numberOfPeople}` : `${item.cost * item.quantity}`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </>
-    );
-  };
+  console.log(items);
+  
+  // Guard against undefined or null items
+  if (!items) {
+    return <div>Loading...</div>;
+  }
+  
+  return (
+    <div className="display_box1">
+      {items.length === 0 && <p>No items selected</p>}
+      <table className="table_item_data">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Unit Cost</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        
+        <tbody>
+          {items.map((item, index) => (
+            <tr key={index}>
+              <td>{item.name}</td>
+              <td>${item.cost}</td>
+              <td>
+                {item.type === 'meals' ? `For ${numberOfPeople} people` : item.quantity}
+              </td>
+              <td>
+                ${item.type === 'meals' ? item.cost * numberOfPeople : item.cost * item.quantity}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
   return (
     <>
@@ -191,6 +196,7 @@ const ConferenceEvent = () => {
       <div className="main_container">
         {!showItems ? (
           <div className="items-information">
+            {console.log(showItems)}
             {/* ----- Venue Section ----- */}
             <div id="venue" className="venue_container container_main">
               <div className="text">
@@ -294,21 +300,24 @@ const ConferenceEvent = () => {
 
                   {/* Display meals */}
                   <div className="meal_selection">
-                    {mealsItems.map((item, index) => {
-                      {/* 'key' prop is necessary for React to keep track of each item in the list */}
+                    {mealsItems.map((item, index) => (
                       <div className="meal_item" key={index} style={{padding: 15}}> 
 
                         <div className="inner">
-                          <input id={`meal_${index}`} type="checkbox" checked={item.seleted} 
+                          <input 
+                            id={`meal_${index}`} 
+                            type="checkbox" 
+                            checked={item.selected} 
                             onChange={() => handleMealSelection(index)}
                           />
 
-                          <label htmlFor={`meal_${index}`}>{item.name}</label> {/* 'htmlFor' is the = for standard HTML 'for' property (like an id) */}
+                          <label htmlFor={`meal_${index}`}>{item.name}</label>
                         </div>
-
+                        
                         <div className="meal_cost">${item.cost}</div>
-                      </div>
-                    })}
+
+                        </div>
+                    ))}
                   </div>
 
                   <div className="total_cost">Total Cost: ${mealsTotalCost}</div>
@@ -318,7 +327,7 @@ const ConferenceEvent = () => {
           </div>
         ) : (
           <div className="total_amount_detail">
-            <TotalCost totalCosts={totalCosts} handleClick={handleToggleItems} ItemsDisplay={() => <ItemsDisplay items={items}/>}></TotalCost>
+            <TotalCost totalCosts={totalCosts} ItemsDisplay={() => <ItemsDisplay items={items}/>}></TotalCost>
           </div>
         )}
       </div>
